@@ -58,9 +58,13 @@ namespace Resizetizer
 
 					if (hasForeground)
 					{
-						var (fgScaledSize, fgScale) = foregroundTools.GetScaledSize(foregroundOriginalSize, dpi);
+						var userFgScale = (float)Info.ForegroundScale;
 
-						var userFgScale = 1.0f; // (float)Info.ForegroundScale;
+						// get the ratio to make the foreground fill the background
+						var fitRatio = bgScaledSize.Width / foregroundOriginalSize.Width;
+
+						// calculate the scale for the foreground to fit the background exactly
+						var (fgScaledSize, fgScale) = foregroundTools.GetScaledSize(foregroundOriginalSize, (decimal)fitRatio);
 
 						Logger.Log("dpi.Size: " + dpi.Size);
 						Logger.Log("dpi.Scale: " + dpi.Scale);
@@ -71,15 +75,18 @@ namespace Resizetizer
 						Logger.Log("fgScale: " + fgScale);
 						Logger.Log("userFgScale: " + userFgScale);
 
-						var fgScaledSizeCenterX = fgScaledSize.Width / 2;
-						var fgScaledSizeCenterY = fgScaledSize.Height / 2;
-
-						var finalScale = userFgScale * fgScale;
+						// now work out the center as if the canvas was exactly the same size as the foreground
+						var fgScaledSizeCenterX = foregroundOriginalSize.Width / 2;
+						var fgScaledSizeCenterY = foregroundOriginalSize.Height / 2;
 
 						Logger.Log("fgScaledSizeCenterX: " + fgScaledSizeCenterX);
-						Logger.Log("finalScale: " + finalScale);
+						Logger.Log("fgScaledSizeCenterY: " + fgScaledSizeCenterY);
 
-						canvas.Scale(finalScale); //, finalScale, fgScaledSizeCenterX, fgScaledSizeCenterY);
+						// scale so the forground is the same size as the background
+						canvas.Scale(fgScale, fgScale);
+						
+						// scale to the user scale, centering
+						canvas.Scale(userFgScale, userFgScale, fgScaledSizeCenterX, fgScaledSizeCenterY);
 
 						foregroundTools.DrawUnscaled(canvas);
 					}
